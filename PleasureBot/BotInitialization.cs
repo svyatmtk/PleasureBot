@@ -9,9 +9,10 @@ internal static class BotInitialization
         var botClient = new TelegramBotClient(SetToken());
         using CancellationTokenSource cts = new();
         botClient.StartReceiving(
-            updateHandler: UpdateAndError.Update,
-            pollingErrorHandler: UpdateAndError.Error
+            updateHandler: UpdateHandling.Update,
+            pollingErrorHandler: ErrorHandling.Error
         );
+
     }
 
     private static string SetToken()

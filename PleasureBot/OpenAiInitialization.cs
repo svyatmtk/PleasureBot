@@ -3,9 +3,9 @@ using OpenAI.GPT3.Managers;
 
 namespace PleasureBot;
 
-internal static class Gpt3Initialization
+internal static class OpenAiInitialization
 {
-    public static OpenAIService Gpt3Init()
+    public static OpenAIService OpenAiServicesInit()
     {
         var openAiServices = new OpenAIService(new OpenAiOptions()
         {
