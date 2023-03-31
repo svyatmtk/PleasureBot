@@ -9,6 +9,7 @@ using Microsoft.VisualBasic;
 using Telegram.Bot.Types.ReplyMarkups;
 using System.Threading;
 using OpenAI.GPT3.ObjectModels.ResponseModels.ImageResponseModel;
+using OpenAI.GPT3.Interfaces;
 
 namespace PleasureBot;
 
@@ -55,7 +56,7 @@ internal class UpdateHandling
 
         else if (IfUserPushedGTP3Button(message))
         {
-            await Gtp3AskToWritePrompt(botClient, message);
+            await Gtp3AskToWritePrompt(botClient, message, cancellationToken);
         }
 
         else if (IfUsertPushedDalle2Button(message))
@@ -72,6 +73,35 @@ internal class UpdateHandling
         else if (UserWantToMakePhotoFromDalle2(message))
         {
             await TrySendPromptToDalle2AndGetResponse(botClient, message);
+            await ShowChoiceMenu(botClient, message, cancellationToken);
+        }
+
+        else if (message.Text == "ChatGPT")
+        {
+                await botClient.SendTextMessageAsync(
+                chatId: message.Chat.Id,
+                text: "уже 5 утра и щас мои глаза хотят закрыться навсегда...клянусь ниже уже на 50% готовый код запроса к чатгпт, утром доделаю)))))",
+                replyToMessageId: message.MessageId, 
+                cancellationToken: cancellationToken);
+            /*var completionResult = await OpenAiInitialization.OpenAiServicesInit().ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest
+            {
+                Messages = new List<ChatMessage>
+                {
+                    ChatMessage.FromSystem("You are a helpful assistant."),
+                    ChatMessage.FromUser("напиши историю про мышь, которая стала человеком"),
+                    ChatMessage.FromAssistant("The Los Angeles Dodgers won the World Series in 2020."),
+                    ChatMessage.FromUser("Where was it played?")
+                },
+                Model = Models.ChatGpt3_5Turbo,
+                MaxTokens = 1024//optional
+            });
+            if(completionResult.Successful)
+            {
+                foreach (var choices in completionResult.Choices)
+                {
+                    Console.WriteLine(choices.Message.Role);
+                }
+            }*/
             await ShowChoiceMenu(botClient, message, cancellationToken);
         }
         else
@@ -99,12 +129,11 @@ internal class UpdateHandling
         => message.Text == "/start";
 
 
-    private static async Task ShowChoiceMenu(ITelegramBotClient botClient, Message message,
-        CancellationToken cancellationToken)
+    private static async Task ShowChoiceMenu(ITelegramBotClient botClient, Message message,CancellationToken cancellationToken)
     {
         var replyKeyboardMarkup = new ReplyKeyboardMarkup(new[]
         {
-            new KeyboardButton[] { "Gpt3", "DALL·E" }
+            new KeyboardButton[] { "Gpt3", "DALL·E", "ChatGPT" }
         })
         {
             ResizeKeyboard = true
@@ -116,12 +145,14 @@ internal class UpdateHandling
             cancellationToken: cancellationToken);
     }
 
-    private static async Task Gtp3AskToWritePrompt(ITelegramBotClient botClient, Message message)
+    private static async Task Gtp3AskToWritePrompt(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
     {
         await botClient.SendTextMessageAsync(
             message.Chat.Id,
-            "Напишите запрос для GPT3",
-            replyMarkup: new ForceReplyMarkup { Selective = true }
+            replyToMessageId: message.MessageId,
+            text:"Напишите запрос для GPT3",
+            replyMarkup: new ForceReplyMarkup { Selective = true },
+            cancellationToken: cancellationToken
         );
     }
 
@@ -191,7 +222,6 @@ internal class UpdateHandling
         }
     }
 
-
     private static async Task<ImageCreateResponse> SendRequestToDalle2(Message message)
     {
         var imageResult = await OpenAiInitialization.OpenAiServicesInit().Image.CreateImage(new ImageCreateRequest()
@@ -210,7 +240,7 @@ internal class UpdateHandling
     {
         var answers = imageResult.Results.Select(r => r.Url).ToArray();
 
-        await botClient.SendMediaGroupAsync(
+        var botMessage = await botClient.SendMediaGroupAsync(
             chatId: message.Chat.Id,
             media: new IAlbumInputMedia[]
             {
@@ -218,6 +248,7 @@ internal class UpdateHandling
                 new InputMediaPhoto(answers[1])
             },
             replyToMessageId: message.MessageId);
+        LogOutput(message, botMessage);
     }
 
     private static void WriteExceptionMessageToUser(ITelegramBotClient botClient, Message message)
@@ -234,5 +265,20 @@ internal class UpdateHandling
             $"User {message.Chat.FirstName} {message.Chat.LastName} sent message " +
             $" \"{message.Text}\" at {message.Date.ToLocalTime()} and bot {botMessage.From.FirstName} " +
             $"answered {botMessage.Text} at {message.Date.ToLocalTime()}\n");
+
+        Console.WriteLine("-----------------------------------------------------\n");
+
+    }
+
+    private static void LogOutput(Message message, Message[] botMessage)
+    {
+        foreach (var message1 in botMessage)
+        {
+            Console.WriteLine(
+                $"User {message.Chat.FirstName} {message.Chat.LastName} sent message " +
+                $" \"{message.Text}\" at {message.Date.ToLocalTime()} and bot {message1.From.FirstName} " +
+                $"answered {message1.Photo} at {message.Date.ToLocalTime()}\n");
+        }
+        Console.WriteLine("-----------------------------------------------------\n");
     }
 }
