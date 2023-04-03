@@ -7,7 +7,7 @@ internal static class OpenAiInitialization
 {
     public static OpenAIService OpenAiServicesInit()
     {
-        var openAiServices = new OpenAIService(new OpenAiOptions()
+        var openAiServices = new OpenAIService(new OpenAiOptions
         {
             ApiKey = Environment.GetEnvironmentVariable("Api_Key_Open_Ai")!
         });

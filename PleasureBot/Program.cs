@@ -1,11 +1,10 @@
-﻿namespace PleasureBot
+﻿namespace PleasureBot;
+
+internal class Program
 {
-    internal class Program
+    private static void Main()
     {
-        private static void Main()
-        {
-            BotInitialization.BotInit();
-            Console.ReadLine();
-        }
+        BotInitialization.BotInit();
+        Console.ReadLine();
     }
 }

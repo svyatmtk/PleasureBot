@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Telegram.Bot;
+﻿using Telegram.Bot;
 
-namespace PleasureBot
+namespace PleasureBot;
+
+internal static class ErrorHandling
 {
-    internal static class ErrorHandling
+    public static async Task Error(ITelegramBotClient client, Exception error, CancellationToken cancelToken)
     {
-        public static async Task Error(ITelegramBotClient client, Exception error, CancellationToken cancelToken)
-        {
-            throw new NotImplementedException();
-        }
+        throw new NotImplementedException();
     }
 }
