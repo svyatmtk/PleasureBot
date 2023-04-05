@@ -12,7 +12,15 @@ internal class UpdateHandling
         if (message != null)
         {
             var date = update.Message!.Date;
-            var datemes = DateTime.Now - date;
+            TimeSpan datemes;
+            if (OperatingSystem.IsWindows())
+            {
+                 datemes = DateTime.Now - date.AddHours(3);
+            }
+            else
+            {
+                 datemes = DateTime.Now - date;
+            }
             if (datemes.Seconds > 5)
                 Console.WriteLine("Старое сообщение");
             else

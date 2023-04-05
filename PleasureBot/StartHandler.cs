@@ -1,4 +1,5 @@
-﻿using Telegram.Bot;
+﻿using System.Reflection;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace PleasureBot;

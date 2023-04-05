@@ -11,6 +11,7 @@ public static class RequestHandlerExtensions
         var dalle2PromptHandler = new Dalle2PromptHandler();
         var chatGptHandler = new ChatGptHandler();
         var chatGptPromptHandler = new ChatGptPromptHandler();
+        var deleteContextHandler = new DeleteContextHandler();
         var defaultHandler = new DefaultHandler();
 
         handler.SetNext(startHandler)
@@ -20,6 +21,7 @@ public static class RequestHandlerExtensions
             .SetNext(dalle2PromptHandler)
             .SetNext(chatGptHandler)
             .SetNext(chatGptPromptHandler)
+            .SetNext(deleteContextHandler)
             .SetNext(defaultHandler);
 
         return handler;
