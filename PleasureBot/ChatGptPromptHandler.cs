@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using OpenAI.GPT3.ObjectModels;
+﻿using OpenAI.GPT3.ObjectModels;
 using OpenAI.GPT3.ObjectModels.RequestModels;
 using OpenAI.GPT3.ObjectModels.ResponseModels;
 using Telegram.Bot;
@@ -9,6 +8,7 @@ namespace PleasureBot;
 
 public class ChatGptPromptHandler : RequestHandler
 {
+    private const int MessageLimit = 2;
     public override async Task<bool> Handle(Message message, ITelegramBotClient botClient,
         CancellationToken cancellationToken)
     {
@@ -25,12 +25,37 @@ public class ChatGptPromptHandler : RequestHandler
     private static async Task TryToSendPromptToChatGpt(ITelegramBotClient botClient, Message message,
         CancellationToken cancellationToken)
     {
+        if (await ReachedLimitAndDontHaveSubscription(botClient, message)) return;
+
+        if (!SqLite.HasSubscription(message))
+        {
+            await botClient.SendTextMessageAsync(
+                message.Chat.Id,
+                $"У вас осталось {MessageLimit - (SqLite.FreeMessagesLeft(message) +1)} бесплатных сообщений");
+
+        }
+
         var prompt = message.Text;
 
         SqLite.SaveMessage(message, prompt);
+        SqLite.UpdateMessageCount(message);
         var messages = SqLite.LoadMessagesForPrompt(message);
 
         await GenerateResponseWithTimeout(botClient, message, cancellationToken, prompt!, messages);
+        Console.WriteLine("method is over");
+    }
+
+    private static async Task<bool> ReachedLimitAndDontHaveSubscription(ITelegramBotClient botClient, Message message)
+    {
+        if (!SqLite.CanSendMessage(message, MessageLimit))
+        {
+            await botClient.SendTextMessageAsync(message.Chat.Id,
+                "Ваши бесплатные использования закончились, купите подписку " +
+                "чтобы пользоваться ботом без ограничений");
+            return true;
+        }
+
+        return false;
     }
 
     private static async Task GenerateResponseWithTimeout(ITelegramBotClient botClient, Message message,
@@ -115,7 +140,7 @@ public class ChatGptPromptHandler : RequestHandler
         var completedTaskAttempt3 = await Task.WhenAny(completionResultTask, timeOutOver);
         if (completedTaskAttempt3 == timeOutOver)
         {
-            DeleteDelaysAlerts(botClient, message, cancellationToken, delayMessageIds);
+            await DeleteDelaysAlerts(botClient, message, cancellationToken, delayMessageIds);
             await TimeOutMessage(botClient, message, cancellationToken);
             return true;
         }
@@ -157,4 +182,5 @@ public class ChatGptPromptHandler : RequestHandler
             if (delayMessageId != 0) await botClient.DeleteMessageAsync(message.Chat.Id, delayMessageId, cancellationToken);
         }
     }
+
 }

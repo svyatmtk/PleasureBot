@@ -12,6 +12,7 @@ public static class RequestHandlerExtensions
         var chatGptHandler = new ChatGptHandler();
         var chatGptPromptHandler = new ChatGptPromptHandler();
         var deleteContextHandler = new DeleteContextHandler();
+        var byuSubscriptionHandler = new ByuSubscriptionHandler();
         var defaultHandler = new DefaultHandler();
 
         handler.SetNext(startHandler)
@@ -22,6 +23,7 @@ public static class RequestHandlerExtensions
             .SetNext(chatGptHandler)
             .SetNext(chatGptPromptHandler)
             .SetNext(deleteContextHandler)
+            .SetNext(byuSubscriptionHandler)
             .SetNext(defaultHandler);
 
         return handler;

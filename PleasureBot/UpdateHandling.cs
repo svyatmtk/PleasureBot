@@ -24,7 +24,22 @@ internal class UpdateHandling
             if (datemes.Seconds > 5)
                 Console.WriteLine("Старое сообщение");
             else
-                await HandleRequest(botClient, update.Message, cancellationToken);
+            {
+
+                var handle = HandleRequest(botClient, update.Message, cancellationToken);
+                var timeOut = Task.Delay(90000);
+                var delayCheck = Task.WhenAny(handle, timeOut);
+                if (delayCheck == timeOut)
+                {
+                    await botClient.SendTextMessageAsync(
+                        message.Chat.Id,
+                        "Что-то пошло совсем не так, как планировалось, попробуйте ввести запрос снова");
+                    return;
+                }
+
+                await handle;
+            }
+                
         }
     }
 
